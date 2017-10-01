@@ -11,6 +11,7 @@ import scala.util.{Failure, Success, Try}
 
 /**
   * Connection
+  *
   * @author Yuriy Stul
   */
 object Connection {
@@ -24,6 +25,7 @@ object Connection {
 
   /**
     * Returns a new Session for specified key space
+    *
     * @param keySpace the key space
     * @return the new Session for specified key space
     */
@@ -39,6 +41,7 @@ object Connection {
 
   /**
     * Closes a Session
+    *
     * @param session the Session to close
     */
   def closeSession(session: Option[Session]): Unit = {
@@ -50,7 +53,40 @@ object Connection {
   /**
     * Closes cluster
     */
-  def closeCluster():Unit={
+  def closeCluster(): Unit = {
     cluster.close()
+  }
+
+  /**
+    * Creates key space
+    *
+    * @param keySpace key space name
+    */
+  def createKeySpace(keySpace: String): Unit = {
+    try {
+      val session = cluster.connect()
+      val query = s"create keyspace if not exists  $keySpace with replication = {'class':'SimpleStrategy', 'replication_factor':1};"
+      session.execute(query)
+      session.close()
+    }
+    catch {
+      case e: Exception => println(s"Error in createKeySpace: ${e.getMessage}")
+    }
+  }
+
+  /**
+    * Deletes a key space
+    * @param keySpace the key space
+    */
+  def deleteKeySpace(keySpace:String):Unit={
+    try {
+      val session = cluster.connect()
+      val query = s"drop keyspace if exists  $keySpace;"
+      session.execute(query)
+      session.close()
+    }
+    catch {
+      case e: Exception => println(s"Error in createKeySpace: ${e.getMessage}")
+    }
   }
 }
