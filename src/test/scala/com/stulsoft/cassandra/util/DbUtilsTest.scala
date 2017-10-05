@@ -6,12 +6,14 @@ package com.stulsoft.cassandra.util
 
 import java.util.concurrent.TimeUnit
 
+import com.stulsoft.cassandra.model.{ColType, ColumnDefinition}
+import com.stulsoft.cassandra.session.Connection
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /** Unit tests for DbUtils
   *
@@ -21,23 +23,56 @@ class DbUtilsTest extends FlatSpec with Matchers {
   val UNIT_TEST_KEY_SPACE = "ys_unit_test_2"
   behavior of "DbUtilsTest"
 
-  it should "createKeySpace" in {
+  "createKeySpace" should "create Key Space" in {
     val f = DbUtils.createKeySpace(UNIT_TEST_KEY_SPACE)
-    f.onComplete{
-      case Success(_)=>
+    f.onComplete {
+      case Success(_) =>
         succeed
-      case Failure(err)=>
+      case Failure(err) =>
         fail(err.getMessage)
     }
     Await.ready(f, Duration(10, TimeUnit.SECONDS))
   }
 
-  it should "deleteKeySpace" in {
-    val f = DbUtils.deleteKeySpace(UNIT_TEST_KEY_SPACE)
-    f.onComplete{
-      case Success(_)=>
+  "createTable" should "create table" in {
+    val session = Connection.openSession(UNIT_TEST_KEY_SPACE) match {
+      case Success(x) => x
+      case Failure(e) => fail(e.getMessage)
+    }
+    val f = DbUtils.createTable(session, "test_table", Seq(
+      ColumnDefinition("id", ColType.INT, primaryKey = true),
+      ColumnDefinition("name", ColType.TEXT)
+    ))
+    f.onComplete {
+      case Success(_) =>
         succeed
-      case Failure(err)=>
+      case Failure(err) =>
+        fail(err.getMessage)
+    }
+    Await.ready(f, Duration(10, TimeUnit.SECONDS))
+  }
+
+  "dropTable" should "delete table" in {
+    val session = Connection.openSession(UNIT_TEST_KEY_SPACE) match {
+      case Success(x) => x
+      case Failure(e) => fail(e.getMessage)
+    }
+    val f = DbUtils.dropTable(session, "test_table")
+    f.onComplete {
+      case Success(_) =>
+        succeed
+      case Failure(err) =>
+        fail(err.getMessage)
+    }
+    Await.ready(f, Duration(10, TimeUnit.SECONDS))
+  }
+
+  "deleteKeySpace" should "delete Key Space" in {
+    val f = DbUtils.deleteKeySpace(UNIT_TEST_KEY_SPACE)
+    f.onComplete {
+      case Success(_) =>
+        succeed
+      case Failure(err) =>
         fail(err.getMessage)
     }
     Await.ready(f, Duration(20, TimeUnit.SECONDS))
