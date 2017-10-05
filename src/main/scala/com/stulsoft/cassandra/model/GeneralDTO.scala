@@ -14,6 +14,12 @@ trait GeneralDTO {
     */
   def id: Option[Any]
 
+  var fields:Set[(String,Any)] = _
+
+  def defineFields(fields:(String,Any)*):Unit={
+    this.fields =  fields.filter(f=>f._2 != None).toSet
+  }
+
   /**
     * Returns a list of columns, where each element is (name, value)
     * @return the list of columns, where each element is (name, value)

@@ -15,7 +15,10 @@ import scala.util.{Failure, Success, Try}
   * @author Yuriy Stul
   */
 object Connection {
-  lazy private val cluster = {
+  /**
+    * Cluster
+    */
+  val cluster: Cluster = {
     val b = Cluster.builder()
 
     Config.hosts.forEach(host => b.addContactPoint(host))
@@ -55,38 +58,5 @@ object Connection {
     */
   def closeCluster(): Unit = {
     cluster.close()
-  }
-
-  /**
-    * Creates key space
-    *
-    * @param keySpace key space name
-    */
-  def createKeySpace(keySpace: String): Unit = {
-    try {
-      val session = cluster.connect()
-      val query = s"create keyspace if not exists  $keySpace with replication = {'class':'SimpleStrategy', 'replication_factor':1};"
-      session.execute(query)
-      session.close()
-    }
-    catch {
-      case e: Exception => println(s"Error in createKeySpace: ${e.getMessage}")
-    }
-  }
-
-  /**
-    * Deletes a key space
-    * @param keySpace the key space
-    */
-  def deleteKeySpace(keySpace:String):Unit={
-    try {
-      val session = cluster.connect()
-      val query = s"drop keyspace if exists  $keySpace;"
-      session.execute(query)
-      session.close()
-    }
-    catch {
-      case e: Exception => println(s"Error in createKeySpace: ${e.getMessage}")
-    }
   }
 }

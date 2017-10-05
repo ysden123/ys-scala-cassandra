@@ -7,6 +7,7 @@ package com.stulsoft.cassandra.util
 import org.scalatest.{FlatSpec, Matchers}
 
 /** Unit tests for Config
+  *
   * @author Yuriy Stul
   */
 class ConfigTest extends FlatSpec with Matchers {
@@ -20,7 +21,7 @@ class ConfigTest extends FlatSpec with Matchers {
 
   "port" should "return port 9042" in {
     val port = Config.port
-    port shouldBe a [Integer]
+    port shouldBe a[Integer]
     port shouldBe 9042
   }
 }

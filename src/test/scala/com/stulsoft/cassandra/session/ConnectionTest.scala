@@ -4,12 +4,19 @@
 
 package com.stulsoft.cassandra.session
 
+import java.util.concurrent.TimeUnit
+
 import com.datastax.driver.core.Session
+import com.stulsoft.cassandra.util.DbUtils
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import scala.util.Success
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success}
 
-/**
+/** Unit tests for Connection
+  *
   * @author Yuriy Stul
   */
 class ConnectionTest extends FlatSpec with Matchers with BeforeAndAfter {
@@ -18,7 +25,14 @@ class ConnectionTest extends FlatSpec with Matchers with BeforeAndAfter {
   behavior of "ConnectionTest"
 
   "createKeySpace" should "create key space" in {
-    Connection.createKeySpace(UNIT_TEST_KEY_SPACE)
+    val f = DbUtils.createKeySpace(UNIT_TEST_KEY_SPACE)
+    f.onComplete {
+      case Success(_) =>
+        succeed
+      case Failure(err) =>
+        fail(err.getMessage)
+    }
+    Await.ready(f, Duration(10, TimeUnit.SECONDS))
   }
 
   "openSession" should "openSession" in {
@@ -34,8 +48,15 @@ class ConnectionTest extends FlatSpec with Matchers with BeforeAndAfter {
     Connection.closeSession(Some(session.get))
   }
 
-  "deleteKeySpace" should "create key space" in {
-    Connection.deleteKeySpace(UNIT_TEST_KEY_SPACE)
+  "deleteKeySpace" should "delete key space" in {
+    val f = DbUtils.deleteKeySpace(UNIT_TEST_KEY_SPACE)
+    f.onComplete {
+      case Success(_) =>
+        succeed
+      case Failure(err) =>
+        fail(err.getMessage)
+    }
+    Await.ready(f, Duration(10, TimeUnit.SECONDS))
   }
 
   "closeCluster" should "close cluster" in {
