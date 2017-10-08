@@ -159,4 +159,20 @@ object DbUtils extends LazyLogging {
         Future.failed(new RuntimeException(msg))
     }
   }
+
+  import scala.reflect.runtime.universe._
+
+  def dataMembers[T](e: T)(implicit tag: TypeTag[T]): Set[(String,String)] = {
+    val classAccessors = typeOf[T].members.filter(m => !m.isMethod && m.name.toString.trim != "tableName")
+
+    classAccessors.map{ ca =>
+      val tt = ca.typeSignature
+      ca.typeSignature.toString match{
+        case "String" => (ca.name.toString.trim, "text")
+        case "Int" => (ca.name.toString.trim, "int")
+        case _ =>
+          throw new RuntimeException(s"${ca.name.toString} has unsupported type ${ca.typeSignature}")
+      }
+    }.toSet
+  }
 }
