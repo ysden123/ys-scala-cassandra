@@ -168,10 +168,8 @@ object DbUtils extends LazyLogging {
     classAccessors.map{ ca =>
       val tt = ca.typeSignature
       ca.typeSignature.toString match{
-        case "String" => (ca.name.toString.trim, "text")
-        case "Option[String]" => (ca.name.toString.trim, "text")
-        case "Int" => (ca.name.toString.trim, "int")
-        case "Option[Int]" => (ca.name.toString.trim, "int")
+        case "String" | "Option[String]"=> (ca.name.toString.trim, "text")
+        case "Int" | "Option[Int]"=> (ca.name.toString.trim, "int")
         case _ =>
           throw new RuntimeException(s"${ca.name.toString} has unsupported type ${ca.typeSignature}")
       }
