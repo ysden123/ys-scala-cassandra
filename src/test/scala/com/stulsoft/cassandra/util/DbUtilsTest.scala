@@ -6,7 +6,6 @@ package com.stulsoft.cassandra.util
 
 import java.util.concurrent.TimeUnit
 
-import com.stulsoft.cassandra.model.{ColType, ColumnDefinition}
 import com.stulsoft.cassandra.session.Connection
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -14,6 +13,7 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
+
 
 /** Unit tests for DbUtils
   *
@@ -39,10 +39,10 @@ class DbUtilsTest extends FlatSpec with Matchers {
       case Success(x) => x
       case Failure(e) => fail(e.getMessage)
     }
-    val f = DbUtils.createTable(session, "test_table", Seq(
-      ColumnDefinition("id", ColType.INT, primaryKey = true),
-      ColumnDefinition("name", ColType.TEXT)
-    ))
+    val t = TestEntity("fhgfhg",21321)
+//    val f = DbUtils.createTable(session, TestEntity, DbUtils.dataMembers(TestEntity))
+    val f = DbUtils.createTable(session, t, DbUtils.dataMembers[TestEntity]())
+
     f.onComplete {
       case Success(_) =>
         succeed

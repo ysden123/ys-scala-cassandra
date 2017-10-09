@@ -1,10 +1,12 @@
 package com.stulsoft.cassandra.model
 
-import scala.reflect.runtime.universe._
-
-/**
+/** Entity
+  *
   * @author Yuriy Stul.
   */
 trait Entity {
-  val tableName: String
+  /**
+    * Table name
+    */
+  val _tableName: String
 }

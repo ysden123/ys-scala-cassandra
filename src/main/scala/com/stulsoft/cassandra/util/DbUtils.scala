@@ -6,11 +6,13 @@ package com.stulsoft.cassandra.util
 
 import com.datastax.driver.core.{ResultSet, ResultSetFuture, Session}
 import com.google.common.util.concurrent.{FutureCallback, Futures}
-import com.stulsoft.cassandra.model.ColumnDefinition
+import com.stulsoft.cassandra.model.Entity
 import com.stulsoft.cassandra.session.Connection.cluster
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.{Future, Promise}
+import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 
 /**
   * @author Yuriy Stul
@@ -73,19 +75,22 @@ object DbUtils extends LazyLogging {
   }
 
   /**
-    * Creates a table
-    *
-    * @param session        the session
-    * @param name           the table name
-    * @param colDefinitions column definitions
-    * @return Future[ResultSet]
+    * Creates
+    * @param session
+    * @param entity
+    * @return
     */
-  def createTable(session: Session, name: String, colDefinitions: Seq[ColumnDefinition]): Future[ResultSet] = {
+//  def createTable[T <: Entity](session: Session, entity: T)(implicit tag: TypeTag[T]): Future[ResultSet] = {
+  def createTable[T <: Entity](session: Session, entity: T, dataMembers2:Set[(String,String)]): Future[ResultSet] = {
     try {
-      val columns = colDefinitions.map(col => {
-        s"""${col.name}  ${col.colType} ${if (col.primaryKey) "primary key" else ""}"""
-      }).mkString(",")
-      val query = s"create table if not exists $name (" + columns + ");"
+      val columns = dataMembers2
+        .map(c => (c._1, c._2) match {
+          case ("id", "int") => s"${c._1} ${c._2} primary key"
+          case _ => s"${c._1} ${c._2}"
+        }).mkString(",")
+
+      val query = s"create table if not exists ${entity._tableName} (" + columns + ");"
+      logger.debug(s"createTable: query = $query")
 
       val resultSetFuture = session.executeAsync(query)
       waitResult(resultSetFuture)
@@ -140,6 +145,29 @@ object DbUtils extends LazyLogging {
   }
 
   /**
+    * Returns data members
+    *
+    * @param e   entity
+    * @param tag specifies entity type
+    * @tparam T the entity type
+    * @return data members
+    */
+//  def dataMembers[T <: Entity](e: T)(implicit tag: TypeTag[T]): Set[(String, String)] = {
+  def dataMembers[T <: Entity]()(implicit tag: TypeTag[T]): Set[(String, String)] = {
+    val classAccessors = typeOf[T].members.filter(m => !m.isMethod && m.name.toString.trim != "_tableName")
+
+    classAccessors.map { ca =>
+      val tt = ca.typeSignature
+      ca.typeSignature.toString match {
+        case "String" | "Option[String]" => (ca.name.toString.trim, "text")
+        case "Int" | "Option[Int]" => (ca.name.toString.trim, "int")
+        case _ =>
+          throw new RuntimeException(s"${ca.name.toString} has unsupported type ${ca.typeSignature}")
+      }
+    }.toSet
+  }
+
+  /**
     * Deletes a table
     *
     * @param session the session
@@ -158,21 +186,5 @@ object DbUtils extends LazyLogging {
         logger.error(msg)
         Future.failed(new RuntimeException(msg))
     }
-  }
-
-  import scala.reflect.runtime.universe._
-
-  def dataMembers[T](e: T)(implicit tag: TypeTag[T]): Set[(String,String)] = {
-    val classAccessors = typeOf[T].members.filter(m => !m.isMethod && m.name.toString.trim != "tableName")
-
-    classAccessors.map{ ca =>
-      val tt = ca.typeSignature
-      ca.typeSignature.toString match{
-        case "String" | "Option[String]"=> (ca.name.toString.trim, "text")
-        case "Int" | "Option[Int]"=> (ca.name.toString.trim, "int")
-        case _ =>
-          throw new RuntimeException(s"${ca.name.toString} has unsupported type ${ca.typeSignature}")
-      }
-    }.toSet
   }
 }

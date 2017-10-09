@@ -6,11 +6,11 @@ import com.stulsoft.cassandra.util.DbUtils
   * @author Yuriy Stul.
   */
 case class Entity1(name: String, id: Int) extends Entity {
-  override val tableName: String = "test_table"
+  override val _tableName: String = "test_table"
 }
 
 case class Entity2(name:Option[String], id: Option[Int]) extends Entity {
-  override val tableName: String = "test_table"
+  override val _tableName: String = "test_table"
 }
 
 object Entity1Runner extends App{
@@ -18,11 +18,11 @@ object Entity1Runner extends App{
   test2()
   def test1(): Unit ={
     val e = Entity1("test name", 123)
-    println(DbUtils.dataMembers(e))
+    println(DbUtils.dataMembers[Entity1]())
   }
 
   def test2(): Unit ={
     val e = Entity2(Some("test name"), Some( 123))
-    println(DbUtils.dataMembers(e))
+    println(DbUtils.dataMembers[Entity2]())
   }
 }
