@@ -147,7 +147,6 @@ object DbUtils extends LazyLogging {
   /**
     * Returns data members
     *
-    * @param e   entity
     * @param tag specifies entity type
     * @tparam T the entity type
     * @return data members
