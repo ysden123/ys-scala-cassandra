@@ -9,6 +9,7 @@ object Data {
 
   /**
     * Cassandra data type and it's converter
+    *
     * @tparam T specifies the value type
     */
   trait CassandraDataType[T] {
@@ -31,7 +32,7 @@ object Data {
       * @param value the value to convert
       * @return converted value
       */
-    override def convert(value: Any):Int = value match {
+    override def convert(value: Any): Int = value match {
       case Some(x: Int) => x
       case Some(x: Long) => x.toInt
       case Some(x: Double) => x.toInt
@@ -47,7 +48,25 @@ object Data {
   }
 
   /**
+    * Implicit converters for String
+    */
+  implicit val StringCassandraType = new CassandraDataType[String] {
+    /**
+      * Converts a ''value'' to ''T'' type
+      *
+      * @param value the value to convert
+      * @return converted value
+      */
+    override def convert(value: Any): String = value match {
+      case Some(x: String) => x
+      case None => null
+      case x => x.toString
+    }
+  }
+
+  /**
     * Cassandra property
+    *
     * @tparam T the property value type
     */
   trait CassandraProperty[T] {
@@ -67,8 +86,9 @@ object Data {
 
   /**
     * Cassandra attribute
+    *
     * @param name the attribute name
-    * @param t the attribute value type
+    * @param t    the attribute value type
     * @tparam T the property value type
     */
   case class CassandraAttribute[T](name: String)(implicit t: CassandraDataType[T]) extends CassandraProperty[T] {

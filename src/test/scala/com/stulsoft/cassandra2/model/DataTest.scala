@@ -21,6 +21,17 @@ class DataTest extends FlatSpec with Matchers {
     a.convert(123.0F) shouldBe 123
     a.convert(123L) shouldBe 123
     a.convert("123") shouldBe 123
+    a.convert(Some(123)) shouldBe 123
+    a.convert(None) shouldBe 0
     a.name shouldBe "index"
+  }
+
+  "StringCassandraType" should "support implicit conversions" in {
+    val a = CassandraAttribute[String]("text")
+    a.convert(123) shouldBe "123"
+    a.convert("123") shouldBe "123"
+    a.convert(Some("123")) shouldBe "123"
+    a.convert(None) shouldBe null
+    a.name shouldBe "text"
   }
 }
