@@ -31,7 +31,7 @@ object Data {
       * @param value the value to convert
       * @return converted value
       */
-    override def convert(value: Any) = value match {
+    override def convert(value: Any):Int = value match {
       case Some(x: Int) => x
       case Some(x: Long) => x.toInt
       case Some(x: Double) => x.toInt
